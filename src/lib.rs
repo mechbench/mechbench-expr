@@ -1,4 +1,4 @@
-//! The mechbench expression language (`mechbench/docs/EXPRESSIONS.md`):
+//! The mechbench expression language (`SPEC.md`):
 //! a strict subset of Python's expressions with total, deterministic
 //! semantics, one engine for compute, the API and the browser.
 

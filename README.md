@@ -13,13 +13,12 @@ depth >= params.allowance and coords.condition == "lie"
 "{coords.fact}: {round(p, 3)}"
 ```
 
-The language is specified in
-[`mechbench/docs/EXPRESSIONS.md`](https://github.com/mechbench/mechbench/blob/main/docs/EXPRESSIONS.md)
-(private for now; the semantics are also pinned by the conformance
-suite here). In short: missing fields are null and null spreads;
-integers stay integers and overflow is an error; `/` is always float and
-`//` floors; rounding is half to even; an undefined number (a division
-by zero, a log of zero) is null and counted; conditions are Kleene's.
+The language is specified in [`SPEC.md`](SPEC.md), and its semantics
+are pinned by the conformance suite. In short: missing fields are null
+and null spreads; integers stay integers and overflow is an error; `/` is
+always float and `//` floors; rounding is half to even; an undefined
+number (a division by zero, a log of zero) is null and counted;
+conditions are Kleene's.
 
 ## Layout
 

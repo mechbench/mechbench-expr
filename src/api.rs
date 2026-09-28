@@ -13,11 +13,16 @@
 //! - `{"op": "filter", "expr": "...", "records": [...]}` → the indexes of
 //!   the records whose condition is `True`, and how many were null;
 //! - `{"op": "template", "template": "...", "records": [...]}` → one string
-//!   per record.
+//!   per record;
+//! - `{"op": "split", "expr": "wilson(correct, level=0.9)"}` → an
+//!   aggregate call taken apart: its function, its positional arguments
+//!   as canonical expressions (read per record), and its named arguments
+//!   evaluated once in protocol scope.
 //!
 //! An error answers `{"ok": false, "error": {"kind", "message", "start",
 //! "end", "record"}}`, `record` the index of the record it met.
 
+use crate::ast::ExprKind;
 use crate::canon::{canonical, reads};
 use crate::error::Error;
 use crate::eval::{Ctx, DEFAULT_FUEL, Scope, cond, eval};
@@ -181,7 +186,44 @@ fn dispatch(req: &Value) -> Value {
                 .collect();
             json!({"ok": true, "values": out, "undefined": undefined})
         }
-        _ => bad("op is check, eval, filter or template"),
+        "split" => {
+            let src = match req.get("expr").and_then(Value::as_str) {
+                Some(s) => s,
+                None => return bad("split takes `expr`, a string"),
+            };
+            let e = match parse(src) {
+                Ok(e) => e,
+                Err(e) => return fail(&e, None),
+            };
+            let ExprKind::Call(function, args) = &e.kind else {
+                let err = Error::syntax(
+                    "an aggregate is one call, such as `mean(x)` or `wilson(correct, level=0.9)`",
+                    e.span,
+                );
+                return fail(&err, None);
+            };
+            // The positional arguments are read per record; the named ones
+            // are settings, read once in protocol scope.
+            let mut positional = Vec::new();
+            let mut named = Map::new();
+            let mut ctx = Ctx::new(fuel);
+            for a in args {
+                match &a.name {
+                    None => positional.push(Value::String(canonical(&a.value))),
+                    Some(n) => {
+                        let mut scope = Scope::new(None, params, header);
+                        match eval(&a.value, &mut scope, &mut ctx) {
+                            Ok(v) => {
+                                named.insert(n.clone(), v);
+                            }
+                            Err(err) => return fail(&err, None),
+                        }
+                    }
+                }
+            }
+            json!({"ok": true, "function": function, "args": positional, "named": named, "canonical": canonical(&e)})
+        }
+        _ => bad("op is check, eval, filter, template or split"),
     }
 }
 

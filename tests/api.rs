@@ -89,3 +89,17 @@ fn a_bad_request_is_answered() {
     let a: Value = serde_json::from_str(&mbexpr::handle("not json")).unwrap();
     assert_eq!(a["error"]["kind"], json!("request"));
 }
+
+#[test]
+fn an_aggregate_call_splits_into_its_parts() {
+    let a = call(
+        json!({"op": "split", "expr": "wilson(theme==1, level=params.level)", "params": {"level": 0.9}}),
+    );
+    assert_eq!(a["function"], json!("wilson"));
+    assert_eq!(a["args"], json!(["theme == 1"]));
+    assert_eq!(a["named"], json!({"level": 0.9}));
+    let b = call(json!({"op": "split", "expr": "count()"}));
+    assert_eq!(b["args"], json!([]));
+    let c = call(json!({"op": "split", "expr": "mean(x) + 1"}));
+    assert_eq!(c["error"]["kind"], json!("syntax"));
+}

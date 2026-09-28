@@ -172,29 +172,31 @@ pub fn eval(e: &Expr, scope: &mut Scope, ctx: &mut Ctx) -> Result<Value, Error> 
             }
             Ok(result.map_or(Value::Null, Value::Bool))
         }
-        ExprKind::And(l, r) => {
-            let a = cond(&eval(l, scope, ctx)?, l.span)?;
-            if a == Some(false) {
-                return Ok(Value::Bool(false));
+        ExprKind::And(items) | ExprKind::Or(items) => {
+            // Kleene's: `and` is false once any operand is false, `or` true
+            // once any is true; otherwise unknown if any was unknown.
+            let decides = matches!(e.kind, ExprKind::Or(_));
+            let mut unknown = false;
+            for x in items {
+                match cond(&eval(x, scope, ctx)?, x.span)? {
+                    Some(b) if b == decides => return Ok(Value::Bool(decides)),
+                    Some(_) => {}
+                    None => unknown = true,
+                }
             }
-            let b = cond(&eval(r, scope, ctx)?, r.span)?;
-            Ok(match (a, b) {
-                (_, Some(false)) => Value::Bool(false),
-                (Some(true), Some(true)) => Value::Bool(true),
-                _ => Value::Null,
+            Ok(if unknown {
+                Value::Null
+            } else {
+                Value::Bool(!decides)
             })
         }
-        ExprKind::Or(l, r) => {
-            let a = cond(&eval(l, scope, ctx)?, l.span)?;
-            if a == Some(true) {
-                return Ok(Value::Bool(true));
+        ExprKind::Chain(first, rest) => {
+            let mut acc = eval(first, scope, ctx)?;
+            for (op, x) in rest {
+                let v = eval(x, scope, ctx)?;
+                acc = binary(*op, &acc, &v, e.span.to(x.span), ctx)?;
             }
-            let b = cond(&eval(r, scope, ctx)?, r.span)?;
-            Ok(match (a, b) {
-                (_, Some(true)) => Value::Bool(true),
-                (Some(false), Some(false)) => Value::Bool(false),
-                _ => Value::Null,
-            })
+            Ok(acc)
         }
         ExprKind::IfElse {
             then,

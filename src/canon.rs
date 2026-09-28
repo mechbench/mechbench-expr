@@ -15,8 +15,10 @@ fn prec(e: &Expr) -> u8 {
         ExprKind::And(..) => 3,
         ExprKind::Unary(UnOp::Not, _) => 4,
         ExprKind::Compare(..) => 5,
-        ExprKind::Binary(BinOp::Add | BinOp::Sub, ..) => 6,
-        ExprKind::Binary(BinOp::Mul | BinOp::Div | BinOp::FloorDiv | BinOp::Mod, ..) => 7,
+        ExprKind::Chain(_, rest) => match rest.first().map(|r| r.0) {
+            Some(BinOp::Add | BinOp::Sub) => 6,
+            _ => 7,
+        },
         ExprKind::Unary(..) => 8,
         ExprKind::Binary(BinOp::Pow, ..) => 9,
         ExprKind::Comp {
@@ -24,6 +26,18 @@ fn prec(e: &Expr) -> u8 {
             ..
         } => 0,
         _ => 10,
+    }
+}
+
+fn symbol(op: BinOp) -> &'static str {
+    match op {
+        BinOp::Add => "+",
+        BinOp::Sub => "-",
+        BinOp::Mul => "*",
+        BinOp::Div => "/",
+        BinOp::FloorDiv => "//",
+        BinOp::Mod => "%",
+        BinOp::Pow => "**",
     }
 }
 
@@ -114,8 +128,28 @@ fn print(e: &Expr) -> String {
             }
             s
         }
-        ExprKind::And(l, r) => format!("{} and {}", wrap(l, 3), wrap(r, 4)),
-        ExprKind::Or(l, r) => format!("{} or {}", wrap(l, 2), wrap(r, 3)),
+        // A same-level node on the left needs no parentheses: `(a and b)
+        // and c` reads as `a and b and c`, which parses back to one node.
+        ExprKind::And(xs) => xs
+            .iter()
+            .enumerate()
+            .map(|(i, x)| wrap(x, if i == 0 { 3 } else { 4 }))
+            .collect::<Vec<_>>()
+            .join(" and "),
+        ExprKind::Or(xs) => xs
+            .iter()
+            .enumerate()
+            .map(|(i, x)| wrap(x, if i == 0 { 2 } else { 3 }))
+            .collect::<Vec<_>>()
+            .join(" or "),
+        ExprKind::Chain(first, rest) => {
+            let level = prec(e);
+            let mut s = wrap(first, level);
+            for (op, x) in rest {
+                s = format!("{s} {} {}", symbol(*op), wrap(x, level + 1));
+            }
+            s
+        }
         ExprKind::IfElse {
             then,
             cond,
@@ -226,7 +260,12 @@ fn walk(e: &Expr, locals: &mut Vec<(String, Option<String>)>, out: &mut BTreeSet
             a.iter().for_each(|x| walk(&x.value, locals, out));
         }
         ExprKind::Unary(_, x) => walk(x, locals, out),
-        ExprKind::Binary(_, l, r) | ExprKind::And(l, r) | ExprKind::Or(l, r) => {
+        ExprKind::Chain(f, rest) => {
+            walk(f, locals, out);
+            rest.iter().for_each(|(_, x)| walk(x, locals, out));
+        }
+        ExprKind::And(xs) | ExprKind::Or(xs) => xs.iter().for_each(|x| walk(x, locals, out)),
+        ExprKind::Binary(_, l, r) => {
             walk(l, locals, out);
             walk(r, locals, out);
         }

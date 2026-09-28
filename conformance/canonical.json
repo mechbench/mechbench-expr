@@ -1,16 +1,122 @@
-{"about": "One canonical form per expression, and the paths it reads.",
+{
+ "about": "One canonical form per expression, and the paths it reads.",
  "cases": [
-  {"check": "a==1", "canonical": "a == 1", "reads": ["a"]},
-  {"check": "(a+b)*c", "canonical": "(a + b) * c", "reads": ["a", "b", "c"]},
-  {"check": "a+(b*c)", "canonical": "a + b * c", "reads": ["a", "b", "c"]},
-  {"check": "x if (c) else y", "canonical": "x if c else y", "reads": ["c", "x", "y"]},
-  {"check": "'flash'", "canonical": "\"flash\""},
-  {"check": "true", "canonical": "True"},
-  {"check": "top[0].token.text != tracked.truth.token", "canonical": "top[0].token.text != tracked.truth.token", "reads": ["top[].token.text", "tracked.truth.token"]},
-  {"check": "[v.winner for v in votes if v.parsed]", "canonical": "[v.winner for v in votes if v.parsed]", "reads": ["votes", "votes[].parsed", "votes[].winner"]},
-  {"check": "metadata['call'].stop_reason", "canonical": "metadata[\"call\"].stop_reason", "reads": ["metadata.call.stop_reason"]},
-  {"check": "depth >= params.allowance", "reads": ["depth", "params.allowance"]},
-  {"check": "-(2**2)", "canonical": "-2 ** 2"},
-  {"check": "(-2)**2", "canonical": "(-2) ** 2"},
-  {"check": "not (a and b)", "canonical": "not (a and b)"}
- ]}
+  {
+   "check": "a==1",
+   "canonical": "a == 1",
+   "reads": [
+    "a"
+   ]
+  },
+  {
+   "check": "(a+b)*c",
+   "canonical": "(a + b) * c",
+   "reads": [
+    "a",
+    "b",
+    "c"
+   ]
+  },
+  {
+   "check": "a+(b*c)",
+   "canonical": "a + b * c",
+   "reads": [
+    "a",
+    "b",
+    "c"
+   ]
+  },
+  {
+   "check": "x if (c) else y",
+   "canonical": "x if c else y",
+   "reads": [
+    "c",
+    "x",
+    "y"
+   ]
+  },
+  {
+   "check": "'flash'",
+   "canonical": "\"flash\""
+  },
+  {
+   "check": "true",
+   "canonical": "True"
+  },
+  {
+   "check": "top[0].token.text != tracked.truth.token",
+   "canonical": "top[0].token.text != tracked.truth.token",
+   "reads": [
+    "top[].token.text",
+    "tracked.truth.token"
+   ]
+  },
+  {
+   "check": "[v.winner for v in votes if v.parsed]",
+   "canonical": "[v.winner for v in votes if v.parsed]",
+   "reads": [
+    "votes",
+    "votes[].parsed",
+    "votes[].winner"
+   ]
+  },
+  {
+   "check": "metadata['call'].stop_reason",
+   "canonical": "metadata[\"call\"].stop_reason",
+   "reads": [
+    "metadata.call.stop_reason"
+   ]
+  },
+  {
+   "check": "depth >= params.allowance",
+   "reads": [
+    "depth",
+    "params.allowance"
+   ]
+  },
+  {
+   "check": "-(2**2)",
+   "canonical": "-2 ** 2"
+  },
+  {
+   "check": "(-2)**2",
+   "canonical": "(-2) ** 2"
+  },
+  {
+   "check": "not (a and b)",
+   "canonical": "not (a and b)"
+  },
+  {
+   "check": "(a+b)+c",
+   "canonical": "a + b + c"
+  },
+  {
+   "check": "a-(b-c)",
+   "canonical": "a - (b - c)"
+  },
+  {
+   "check": "a-b+c",
+   "canonical": "a - b + c"
+  },
+  {
+   "check": "a*(b/c)",
+   "canonical": "a * (b / c)"
+  },
+  {
+   "check": "(a and b) and c",
+   "canonical": "a and b and c"
+  },
+  {
+   "check": "a and (b and c)",
+   "canonical": "a and (b and c)"
+  },
+  {
+   "check": "a and (b or c)",
+   "canonical": "a and (b or c)"
+  },
+  {
+   "check": "(a or b) and c",
+   "canonical": "(a or b) and c"
+  }
+ ]
+}

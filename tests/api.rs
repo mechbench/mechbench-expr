@@ -69,10 +69,19 @@ fn deep_nesting_is_a_limit_not_a_crash() {
 }
 
 #[test]
-fn a_long_chain_is_a_limit_not_a_crash() {
-    let src = vec!["1"; 5000].join(" + ");
-    let a = call(json!({"op": "eval", "expr": src}));
-    assert_eq!(a["error"]["kind"], json!("limit"));
+fn a_long_chain_is_one_level_deep() {
+    let sum = vec!["1"; 5000].join(" + ");
+    assert_eq!(
+        call(json!({"op": "eval", "expr": sum}))["values"],
+        json!([5000])
+    );
+    let all = vec!["x > 0"; 5000].join(" and ");
+    assert_eq!(
+        call(json!({"op": "eval", "expr": all, "record": {"x": 1}}))["values"],
+        json!([true])
+    );
+    let check = call(json!({"op": "check", "expr": vec!["a"; 3000].join(" * ")}));
+    assert_eq!(check["reads"], json!(["a"]));
 }
 
 #[test]

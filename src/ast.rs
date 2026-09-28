@@ -64,10 +64,18 @@ pub enum ExprKind {
     Call(String, Vec<Arg>),
     Method(Box<Expr>, String, Vec<Arg>),
     Unary(UnOp, Box<Expr>),
+    /// `a ** b`: the one binary operator kept as a pair, since it groups
+    /// right to left.
     Binary(BinOp, Box<Expr>, Box<Expr>),
+    /// A chain of operators at one level, `a + b - c` or `a * b / c`, as
+    /// one node read left to right: a sum of a thousand terms is one level
+    /// deep, parsed and evaluated in a loop.
+    Chain(Box<Expr>, Vec<(BinOp, Expr)>),
     Compare(Box<Expr>, Vec<(CmpOp, Expr)>),
-    And(Box<Expr>, Box<Expr>),
-    Or(Box<Expr>, Box<Expr>),
+    /// `a and b and c`: its operands, at least two, one level deep.
+    And(Vec<Expr>),
+    /// `a or b or c`: likewise.
+    Or(Vec<Expr>),
     IfElse {
         then: Box<Expr>,
         cond: Box<Expr>,

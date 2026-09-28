@@ -58,10 +58,11 @@ fn children(e: &Expr) -> Vec<&Expr> {
     match &e.kind {
         ExprKind::Lit(_) | ExprKind::Name(_) => vec![],
         ExprKind::Attr(t, _) | ExprKind::Unary(_, t) => vec![t],
-        ExprKind::Index(t, i)
-        | ExprKind::Binary(_, t, i)
-        | ExprKind::And(t, i)
-        | ExprKind::Or(t, i) => vec![t, i],
+        ExprKind::Index(t, i) | ExprKind::Binary(_, t, i) => vec![t, i],
+        ExprKind::Chain(f, rest) => std::iter::once(&**f)
+            .chain(rest.iter().map(|(_, x)| x))
+            .collect(),
+        ExprKind::And(xs) | ExprKind::Or(xs) => xs.iter().collect(),
         ExprKind::Slice(t, a, b, c) => {
             let mut out: Vec<&Expr> = vec![t];
             out.extend([a, b, c].into_iter().flatten().map(|x| &**x));
@@ -164,23 +165,21 @@ impl Parser {
     }
 
     fn or(&mut self) -> Result<Expr, Error> {
-        let mut left = self.and()?;
+        let first = self.and()?;
+        let mut items = vec![first];
         while self.eat(&Tok::Or) {
-            let right = self.and()?;
-            let span = left.span.to(right.span);
-            left = Expr::new(ExprKind::Or(Box::new(left), Box::new(right)), span);
+            items.push(self.and()?);
         }
-        Ok(left)
+        Ok(join(items, ExprKind::Or))
     }
 
     fn and(&mut self) -> Result<Expr, Error> {
-        let mut left = self.not()?;
+        let first = self.not()?;
+        let mut items = vec![first];
         while self.eat(&Tok::And) {
-            let right = self.not()?;
-            let span = left.span.to(right.span);
-            left = Expr::new(ExprKind::And(Box::new(left), Box::new(right)), span);
+            items.push(self.not()?);
         }
-        Ok(left)
+        Ok(join(items, ExprKind::And))
     }
 
     fn not(&mut self) -> Result<Expr, Error> {
@@ -242,7 +241,8 @@ impl Parser {
     }
 
     fn sum(&mut self) -> Result<Expr, Error> {
-        let mut left = self.term()?;
+        let first = self.term()?;
+        let mut rest = Vec::new();
         loop {
             let op = match self.peek().tok {
                 Tok::Plus => BinOp::Add,
@@ -250,15 +250,14 @@ impl Parser {
                 _ => break,
             };
             self.next();
-            let right = self.term()?;
-            let span = left.span.to(right.span);
-            left = Expr::new(ExprKind::Binary(op, Box::new(left), Box::new(right)), span);
+            rest.push((op, self.term()?));
         }
-        Ok(left)
+        Ok(chain(first, rest))
     }
 
     fn term(&mut self) -> Result<Expr, Error> {
-        let mut left = self.unary()?;
+        let first = self.unary()?;
+        let mut rest = Vec::new();
         loop {
             let op = match self.peek().tok {
                 Tok::Star => BinOp::Mul,
@@ -268,11 +267,9 @@ impl Parser {
                 _ => break,
             };
             self.next();
-            let right = self.unary()?;
-            let span = left.span.to(right.span);
-            left = Expr::new(ExprKind::Binary(op, Box::new(left), Box::new(right)), span);
+            rest.push((op, self.unary()?));
         }
-        Ok(left)
+        Ok(chain(first, rest))
     }
 
     fn unary(&mut self) -> Result<Expr, Error> {
@@ -546,6 +543,25 @@ impl Parser {
         };
         Ok(Expr::new(kind, span))
     }
+}
+
+/// Operands joined by one of `and`/`or`: the operand itself when alone.
+fn join(mut items: Vec<Expr>, kind: fn(Vec<Expr>) -> ExprKind) -> Expr {
+    if items.len() == 1 {
+        return items.pop().expect("one operand");
+    }
+    let span = items[0].span.to(items[items.len() - 1].span);
+    Expr::new(kind(items), span)
+}
+
+/// A first operand and the operators and operands after it: the operand
+/// itself when there are none.
+fn chain(first: Expr, rest: Vec<(BinOp, Expr)>) -> Expr {
+    if rest.is_empty() {
+        return first;
+    }
+    let span = first.span.to(rest[rest.len() - 1].1.span);
+    Expr::new(ExprKind::Chain(Box::new(first), rest), span)
 }
 
 pub fn float(v: f64) -> Value {

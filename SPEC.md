@@ -134,22 +134,26 @@ record of the group:
 - **plain**: `count()`, `count(cond)`, `sum(x)`, `mean(x)`, `median(x)`,
   `min(x)`, `max(x)`, `share(cond)`, `any(cond)`, `all(cond)`,
   `first(x)`, `last(x)`, `collect(x)`.
-- **named methods** (computed by compute, cited by name in the reading
-  and the docs, their numerics unchanged from today's operations):
-  `wilson(cond, level=0.95)` → `{k, n, rate, lo, hi}`;
-  `bootstrap_mean(x, level=0.95, resamples=2000, seed=0)` → `{mean, lo, hi}`;
-  `spearman(x, y, level=None)` → `{n, rho, lo, hi}`;
+- **named methods**, each answering an object:
+  `wilson(cond, level=0.95)` → `{k, n, rate, lo, hi}`, the Wilson score
+  interval;
+  `bootstrap_mean(x, level=0.95, resamples=2000, seed=0)` →
+  `{n, mean, lo, hi}`;
+  `spearman(x, y, level=None)` → `{n, rho, lo, hi}`, the interval
+  Fisher's;
   `paired_difference(x, on, a, b, paired, level=0.95, resamples=2000,
-  seed=0)` → `{n, diff, lo, hi, share_positive, ...}`.
+  seed=0)` → `{n, mean_a, mean_b, diff, lo, hi, share_positive}`, the
+  records where `on == a` against those where `on == b`, matched by
+  `paired` when it is given.
 
-Nulls are skipped by the plain aggregates and counted (`n_missing`), as
-`on_missing: skip` does today; `on_missing: fail` stays available.
+A record whose argument is `None` is skipped by an aggregate and
+counted; a host may instead refuse it.
 
 ## Checked before it runs
 
 Every field path an expression reads is checked against the upstream
 output's kind (its declared fields) when the protocol is pushed, and a
-path the kind does not declare is a finding, as a wrong port is today.
+path the kind does not declare is a finding.
 Types are checked where the kind declares them: `len(p)` on a declared
 number is an error at push, not at run.
 
@@ -158,30 +162,6 @@ number is an error at push, not at run.
 An expression is stored as written. It enters the protocol's hash as its
 canonical form (parsed and printed back with one spacing and quoting
 rule), so `a==1` and `a == 1` are the same protocol.
-
-## Compatibility with mechbench's earlier forms
-
-Before expressions, each records operation in mechbench-compute wrote its
-conditions, paths and templates in a form of its own. Each maps to one
-expression. Those operations read a field from `coords` first and then
-from the top level, so a bare name in an old param becomes
-`coords.x if has(coords, "x") else x`, or the simpler `coords.x` or `x`
-where the upstream kind or the stored results show which one holds it.
-The table writes the simple form:
-
-| today | expression |
-|---|---|
-| `where: {"prompt": "flash"}` | `coords.prompt == "flash"` |
-| `where: {"face": ["1", "2"]}` | `face in ["1", "2"]` |
-| `where: [{"op": ">=", "path": "depth", "value": {"$param": "allowance"}}]` | `depth >= params.allowance` |
-| `where: ["delta<0"]` | `delta < 0` |
-| `where: ["bold=0", "heading=0", "lex_words>0"]` | `bold == 0 and heading == 0 and lex_words > 0` |
-| `field: "theme", equals: 1` | `theme == 1` |
-| `rename: {"metadata.sampling.ended": "ended"}` | derive `ended: metadata.sampling.ended`, drop `metadata.sampling.ended` |
-| `relabel: {"true": "global attention", "false": "local attention"}` | `"global attention" if attention else "local attention"` |
-| `relabel` of many values, `others: "error"` | `{"attn": "its attention only", "mlp": "its MLP only"}.get(removed, "error")` |
-| `fill: "Write a story about {animal}."` | the same string, now a template |
-| single-input `union` with `batch_axis: "model"` | derive `coords.model: params.model` (or a literal) |
 
 ## The engine
 

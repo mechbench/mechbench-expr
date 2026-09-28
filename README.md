@@ -30,9 +30,12 @@ by zero, a log of zero) is null and counted; conditions are Kleene's.
 - `hosts/`: the module driven from Node (`engine.mjs`, `conformance.mjs`)
   and from Python under wasmtime (`answers.py`); `answers.*` print every
   case's raw answer so hosts can be compared byte for byte.
-- `build.sh`: the reproducible release build (toolchain pinned in
+- `build.sh`: the reproducible build (toolchain pinned in
   `rust-toolchain.toml`, dependencies in `Cargo.lock`, local paths
-  remapped); prints the sha256 compute pins.
+  remapped). A version tag runs `.github/workflows/release.yml`, which
+  builds the module on Linux and attaches it, with its sha256, to a
+  release; compute pins that. The bytes reproduce on Linux x86_64; a
+  build on another host platform orders its code differently.
 
 ## Checks
 

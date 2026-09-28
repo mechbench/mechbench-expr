@@ -1,0 +1,29 @@
+name: release
+# A version tag (v0.1.0) builds the module here, on Linux with the pinned
+# toolchain, and attaches it to a release. Only this build is pinned: the
+# bytes reproduce on Linux x86_64 from the same inputs, while a build on
+# another host platform orders its code differently.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup show
+      - run: cargo test --locked
+      - run: ./build.sh
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp build/mbexpr.wasm "mbexpr-${GITHUB_REF_NAME}.wasm"
+          sha256sum "mbexpr-${GITHUB_REF_NAME}.wasm" > SHA256SUMS
+          gh release create "${GITHUB_REF_NAME}" "mbexpr-${GITHUB_REF_NAME}.wasm" SHA256SUMS \
+            --title "mbexpr ${GITHUB_REF_NAME}" \
+            --notes "The engine as WebAssembly, built by this workflow on Linux with the toolchain in rust-toolchain.toml. sha256 in SHA256SUMS."

@@ -1,0 +1,37 @@
+name: test
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain (rust-toolchain.toml)
+        run: rustup show && rustup component add clippy rustfmt
+      - name: Format
+        run: cargo fmt --check
+      - name: Lint
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Test (native, with the conformance suite)
+        run: cargo test --locked
+      - name: Build the module
+        run: ./build.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: The suite through WebAssembly in Node
+        run: node hosts/conformance.mjs ../build/mbexpr.wasm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Every host answers byte for byte alike
+        run: |
+          pip install wasmtime
+          cargo run -q --locked --example answers > native.txt
+          node hosts/answers.mjs ../build/mbexpr.wasm > node.txt
+          python hosts/answers.py build/mbexpr.wasm > python.txt
+          cmp native.txt node.txt
+          cmp native.txt python.txt

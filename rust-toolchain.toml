@@ -1,0 +1,5 @@
+# The toolchain the released module is built with: the same compiler
+# gives the same bytes, so a pinned module's hash reproduces.
+[toolchain]
+channel = "1.98.1"
+targets = ["wasm32-unknown-unknown"]

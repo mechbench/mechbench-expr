@@ -1,0 +1,19 @@
+{"about": "A bare name reads the record's own top-level field and nothing else; `coords.x` is a coordinate, `params.x` a parameter, `header.x` the input's header; missing is null.",
+ "cases": [
+  {"expr": "prompt", "record": {"coords": {"prompt": "flash"}}, "expect": null},
+  {"expr": "coords.prompt", "record": {"coords": {"prompt": "flash"}}, "expect": "flash"},
+  {"expr": "top[0].token.text != tracked.truth.token", "record": {"top": [{"token": {"text": " Paris"}}], "tracked": {"truth": {"token": " Paris"}}}, "expect": false},
+  {"expr": "metadata[\"call\"].stop_reason", "record": {"metadata": {"call": {"stop_reason": "max_tokens"}}}, "expect": "max_tokens"},
+  {"expr": "xs[-1]", "record": {"xs": [1, 2, 3]}, "expect": 3},
+  {"expr": "xs[3]", "record": {"xs": [1, 2, 3]}, "expect_error": "range"},
+  {"expr": "xs[1:]", "record": {"xs": [1, 2, 3]}, "expect": [2, 3]},
+  {"expr": "xs[::-1]", "record": {"xs": [1, 2, 3]}, "expect": [3, 2, 1]},
+  {"expr": "s[1:3]", "record": {"s": "héllo"}, "expect": "él"},
+  {"expr": "len(s)", "record": {"s": "héllo"}, "expect": 5},
+  {"expr": "a.b.c", "record": {"a": null}, "expect": null},
+  {"expr": "a.b", "record": {"a": 3}, "expect_error": "type"},
+  {"expr": "depth >= params.allowance", "record": {"depth": 3}, "params": {"allowance": 2}, "expect": true},
+  {"expr": "layer in header.arch.global_layers", "record": {"layer": 5}, "header": {"arch": {"global_layers": [5, 11]}}, "expect": true},
+  {"expr": "record[\"in\"]", "record": {"in": 7}, "expect": 7},
+  {"expr": "layer", "params": {"layer": 12}, "expect": 12}
+ ]}

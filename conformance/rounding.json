@@ -1,0 +1,17 @@
+{"about": "Rounding is half to even from the float's exact value, as Python's `round`; `round(x)` gives an integer, `round(x, n)` a float.",
+ "cases": [
+  {"expr": "round(2.5)", "expect": 2},
+  {"expr": "round(3.5)", "expect": 4},
+  {"expr": "round(-2.5)", "expect": -2},
+  {"expr": "round(0.125, 2)", "expect": 0.12},
+  {"expr": "round(0.375, 2)", "expect": 0.38},
+  {"expr": "round(2.675, 2)", "expect": 2.67},
+  {"expr": "round(7)", "expect": 7},
+  {"expr": "round(7, 2)", "expect": 7},
+  {"expr": "round(x, 3)", "record": {"x": null}, "expect": null},
+  {"expr": "floor(-1.5)", "expect": -2},
+  {"expr": "ceil(-1.5)", "expect": -1},
+  {"expr": "int(-1.9)", "expect": -1},
+  {"expr": "int(\"42\")", "expect": 42},
+  {"expr": "float(\"1e-3\")", "expect": 0.001}
+ ]}

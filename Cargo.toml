@@ -1,0 +1,20 @@
+[package]
+name = "mbexpr"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "The mechbench expression language: a strict subset of Python expressions with total, deterministic semantics, one engine for compute, the API and the browser."
+repository = "https://github.com/mechbench/mechbench-expr"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+libm = "0.2"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"

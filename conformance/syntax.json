@@ -1,0 +1,14 @@
+{"about": "What is not the language is refused by name, at parse time.",
+ "cases": [
+  {"expr": "lambda x: x", "expect_error": "syntax"},
+  {"expr": "x = 1", "expect_error": "syntax"},
+  {"expr": "(x := 1)", "expect_error": "syntax"},
+  {"expr": "(1, 2)", "expect_error": "syntax"},
+  {"expr": "{1, 2}", "expect_error": "syntax"},
+  {"expr": "[x for x in xs for y in ys]", "expect_error": "syntax"},
+  {"expr": "x is 1", "expect_error": "syntax"},
+  {"expr": "import os", "expect_error": "syntax"},
+  {"expr": "f(x)(y)", "expect_error": "syntax"},
+  {"expr": "\"unclosed", "expect_error": "syntax"},
+  {"expr": "99999999999999999999", "expect_error": "syntax"}
+ ]}

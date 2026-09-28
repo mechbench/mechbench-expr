@@ -1,0 +1,9 @@
+{"about": "One `for`, one optional `if`, over a finite list; a generator inside a call.",
+ "cases": [
+  {"expr": "[v.winner for v in votes if v.parsed]", "record": {"votes": [{"winner": "A", "parsed": true}, {"winner": "B", "parsed": false}]}, "expect": ["A"]},
+  {"expr": "sum(t.p for t in top)", "record": {"top": [{"p": 0.5}, {"p": 0.25}]}, "expect": 0.75},
+  {"expr": "any(t.token.text == tracked.truth.token for t in top[:3])", "record": {"top": [{"token": {"text": "a"}}, {"token": {"text": "b"}}], "tracked": {"truth": {"token": "b"}}}, "expect": true},
+  {"expr": "[x * 2 for x in xs]", "record": {"xs": null}, "expect": null},
+  {"expr": "[x for x in 3]", "expect_error": "type"},
+  {"expr": "len([c for c in s if c == \"a\"])", "record": {"s": ["a", "b", "a"]}, "expect": 2}
+ ]}

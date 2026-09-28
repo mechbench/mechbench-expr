@@ -154,17 +154,22 @@ counted; a host may instead refuse it.
 
 ## Checked before it runs
 
-Every field path an expression reads is checked against the upstream
+Every field an expression reads is checked against the upstream
 output's kind (its declared fields) when the protocol is pushed, and a
-path the kind does not declare is a finding.
+field the kind does not declare is a finding. On an operation with
+several inputs, an expression is checked against the inputs its
+parameter declares it reads (a join's key against both sides). Kinds
+declare their fields one level deep, so a path is checked by its first
+name.
 Types are checked where the kind declares them: `len(p)` on a declared
 number is an error at push, not at run.
 
-## Canonical form and the hash
+## Canonical form
 
-An expression is stored as written. It enters the protocol's hash as its
-canonical form (parsed and printed back with one spacing and quoting
-rule), so `a==1` and `a == 1` are the same protocol.
+An expression is stored as written, and compared as its canonical form
+(parsed and printed back with one spacing and quoting rule), so `a==1`
+and `a == 1` are the same protocol: pushing one over the other changes
+nothing, and a diff between them is empty.
 
 ## The engine
 

@@ -95,10 +95,13 @@ Values are JSON's: null, booleans, numbers, strings, lists, objects.
   `null and False` is false, `null or True` is true, otherwise `null`.
   A **filter keeps a record only when its condition is `True`**: false
   and null both drop it, and the operation counts the nulls it met.
+  A **conditional whose condition is null is null**: `a if c else b`
+  takes neither branch when `c` is `None`, and the null is counted with
+  the undefined numbers ("a condition that was None"); write
+  `coalesce(a if c else b, fallback)` to give it a value.
 - **Truth**: a condition must be a boolean or null; `1` and `0` are not
   booleans, but `x == 1` is, and a numeric field compared to a boolean
-  compares `1 == True` as Python does (the inventory found booleans
-  stored as 0/1 in 26 counts).
+  compares `1 == True` as Python does.
 - **Strings** are sequences of Unicode code points: `len`, indexing and
   slicing count code points, and `<` compares code point by code point.
 - **Equality** is structural: lists and objects are equal when their

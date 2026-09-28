@@ -203,12 +203,12 @@ pub fn eval(e: &Expr, scope: &mut Scope, ctx: &mut Ctx) -> Result<Value, Error> 
             cond: c,
             otherwise,
         } => {
-            // Only a true condition takes the first branch: false and
-            // null both take the second, as a filter drops both.
-            if cond(&eval(c, scope, ctx)?, c.span)? == Some(true) {
-                eval(then, scope, ctx)
-            } else {
-                eval(otherwise, scope, ctx)
+            // A null condition takes neither branch: the answer is
+            // unknown, so it is null, and counted.
+            match cond(&eval(c, scope, ctx)?, c.span)? {
+                Some(true) => eval(then, scope, ctx),
+                Some(false) => eval(otherwise, scope, ctx),
+                None => Ok(ctx.undefined("a condition that was None")),
             }
         }
         ExprKind::List(items) => {

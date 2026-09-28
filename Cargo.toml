@@ -1,6 +1,6 @@
 [package]
 name = "mbexpr"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 license = "MIT"
 description = "The mechbench expression language: a strict subset of Python expressions with total, deterministic semantics, one engine for compute, the API and the browser."

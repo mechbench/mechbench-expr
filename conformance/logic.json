@@ -49,7 +49,25 @@
    "record": {
     "c": null
    },
+   "expect": null,
+   "undefined": {
+    "a condition that was None": 1
+   }
+  },
+  {
+   "expr": "\"yes\" if c else \"no\"",
+   "record": {
+    "c": false
+   },
    "expect": "no"
+  },
+  {
+   "expr": "coalesce(\"yes\" if c else \"no\", \"unknown\")",
+   "record": {},
+   "expect": "unknown",
+   "undefined": {
+    "a condition that was None": 1
+   }
   },
   {
    "expr": "\"yes\" if c else \"no\"",

@@ -18,3 +18,7 @@ opt-level = "s"
 lto = true
 codegen-units = 1
 panic = "abort"
+# Symbol names carry a hash of each crate's identity, which for this
+# crate includes where the checkout sits: stripped, the bytes depend only
+# on the pinned inputs.
+strip = true
